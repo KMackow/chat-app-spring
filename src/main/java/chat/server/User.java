@@ -7,7 +7,7 @@ import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.data.mongodb.repository.config.EnableMongoRepositories;
 
 @Data
-@Document(collection = "users1")
+@Document(collection = "users")
 public class User {
 
     @Id

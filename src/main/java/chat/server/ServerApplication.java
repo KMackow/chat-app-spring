@@ -18,7 +18,8 @@ public class ServerApplication extends WebSecurityConfigurerAdapter  {
         http
                 .antMatcher("/**")
                 .authorizeRequests()
-                .antMatchers("/", "/bundle.js", "/favicon.ico", "/login**", "/callback", "/webjars/**", "/error**")
+                .antMatchers("/", "/bundle.js", "/index.js.map", "/favicon.ico", "/login**", "/callback",
+                        "/webjars/**", "/error**")
                 .permitAll()
                 .anyRequest()
                 .authenticated()
