@@ -8,5 +8,6 @@ import java.util.List;
 @Repository
 interface ChatRepository extends MongoRepository<Chat, String> {
     Chat findByUsers(List<String> users);
+    List<Chat> findAllByUsers(String user);
 
 }

@@ -61,7 +61,7 @@
 /******/ 	
 /******/ 	
 /******/ 	var hotApplyOnUpdate = true;
-/******/ 	var hotCurrentHash = "2625252b2e62512ceeff"; // eslint-disable-line no-unused-vars
+/******/ 	var hotCurrentHash = "74e4404b4202096160f1"; // eslint-disable-line no-unused-vars
 /******/ 	var hotRequestTimeout = 10000;
 /******/ 	var hotCurrentModuleData = {};
 /******/ 	var hotCurrentChildModule; // eslint-disable-line no-unused-vars
@@ -10936,6 +10936,8 @@ var equalArrays = exports.equalArrays = function equalArrays(arr1, arr2) {
         return false;
     }
     for (var i = 0; i < arr1.length; i++) {
+        console.log(arr1);
+        console.log(arr2);
         if (arr1[i] !== arr2[i]) {
             return false;
         }
@@ -12946,7 +12948,7 @@ module.exports = Event;
 Object.defineProperty(exports, "__esModule", {
     value: true
 });
-exports.logOut = exports.sendMessage = exports.requestHistory = exports.logIn = exports.openChat = exports.socketConnected = exports.addMessage = undefined;
+exports.logOut = exports.requestHistory = exports.logIn = exports.openChat = exports.socketConnected = exports.addMessageHistory = exports.setupChats = exports.newMessage = exports.addMessage = undefined;
 
 var _axios = __webpack_require__(636);
 
@@ -12983,24 +12985,10 @@ function logout() {
     };
 }
 
-function addMessageHistory(history) {
-    return {
-        type: "ADD_MESSAGE_HISTORY",
-        messageHistory: history
-    };
-}
-
 function chatUpdated(chatUpdate) {
     return {
         type: "CHAT_UPDATED",
         chatUpdate: chatUpdate
-    };
-}
-
-function setupChats(updatedChats) {
-    return {
-        type: "SET_UPDATED",
-        updatedChats: updatedChats
     };
 }
 
@@ -13025,6 +13013,59 @@ var addMessage = exports.addMessage = function addMessage(message) {
     };
 };
 
+var newMessage = exports.newMessage = function newMessage(message, user, socket) {
+    return function (dispatch) {
+        var users = [];
+        var _iteratorNormalCompletion = true;
+        var _didIteratorError = false;
+        var _iteratorError = undefined;
+
+        try {
+            for (var _iterator = message.users[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
+                var _user = _step.value;
+
+                users.push(_user);
+            }
+        } catch (err) {
+            _didIteratorError = true;
+            _iteratorError = err;
+        } finally {
+            try {
+                if (!_iteratorNormalCompletion && _iterator.return) {
+                    _iterator.return();
+                }
+            } finally {
+                if (_didIteratorError) {
+                    throw _iteratorError;
+                }
+            }
+        }
+
+        users.sort();
+        if ((0, _helperFunctions.equalArrays)(users, openedChatUsers)) {
+            console.log(user);
+            socket.sendMessage("/app/updateSeen/" + user, users);
+            dispatch(addMessage(message.message));
+        } else {
+            dispatch(chatUpdated({ users: users, noOfNotSeen: message.noOfNotSeen }));
+        }
+    };
+};
+
+var setupChats = exports.setupChats = function setupChats(updatedChats) {
+    return {
+        type: "SET_UPDATED",
+        updatedChats: updatedChats
+    };
+};
+
+var addMessageHistory = exports.addMessageHistory = function addMessageHistory(history) {
+    return {
+        type: "ADD_MESSAGE_HISTORY",
+        messageHistory: history
+    };
+};
+
 var socketConnected = exports.socketConnected = function socketConnected(webSocketRef) {
     return {
         type: "SOCKET_CONNECTED",
@@ -13036,15 +13077,11 @@ var openChat = exports.openChat = function openChat(user, chatUsers, socket) {
     return function (dispatch) {
         openedChatUsers = chatUsers.sort();
         dispatch(newChat(openedChatUsers));
-        // socket.sendMessage("/app/history/", {user: user, noOfMessages:NO_OF_MESSAGES,
-        //     chatUsers: Object.assign({}, this.props.chatUsers)})
-        // socket.emit("requestHistory" , {
-        //     user: user,
-        //     chatUsers: chatUsers,
-        //     noOfMessages: NO_OF_MESSAGES
-        // }, function(history) {
-        //     dispatch(addMessageHistory(history));
-        // });
+        socket.sendMessage("/app/history", JSON.stringify({
+            user: { user: user },
+            chatUsers: Object.assign({}, chatUsers),
+            noOfMessages: { noOfMessages: NO_OF_MESSAGES }
+        }));
         dispatch(removeUpdate(openedChatUsers));
     };
 };
@@ -13088,16 +13125,6 @@ var requestHistory = exports.requestHistory = function requestHistory(user, chat
     //     }, function(history, seen) {
     //         dispatch(addMessageHistory(history));
     //     });
-    // }
-};
-
-var sendMessage = exports.sendMessage = function sendMessage(message, user, chatUsers, socket) {
-    // return () => {
-    //     socket.emit("message", {
-    //         message: message,
-    //         user: user,
-    //         chatUsers: chatUsers
-    //     })
     // }
 };
 
@@ -29005,11 +29032,11 @@ var chatUpdates = function chatUpdates() {
             return action.updatedChats;
         case "CHAT_UPDATED":
             return state.filter(function (chat) {
-                return !(0, _helperFunctions.equalArrays)(chat.chatUsers, action.chatUpdate.chatUsers);
+                return !(0, _helperFunctions.equalArrays)(chat.users, action.chatUpdate.users);
             }).concat(action.chatUpdate);
         case "REMOVE_UPDATE":
             return state.filter(function (chat) {
-                return !(0, _helperFunctions.equalArrays)(chat.chatUsers, action.chatUsers);
+                return !(0, _helperFunctions.equalArrays)(chat.users, action.chatUsers);
             });
         default:
             return state;
@@ -39091,11 +39118,20 @@ var mapDispatchToProps = function mapDispatchToProps(dispatch) {
         openChat: function openChat(user, users, socket) {
             return dispatch((0, _index.openChat)(user, users, socket));
         },
-        addMessage: function addMessage(message) {
-            return dispatch((0, _index.addMessage)(message));
+        newMessage: function newMessage(message, user, socket) {
+            return dispatch((0, _index.newMessage)(message, user, socket));
+        },
+        addMessageHistory: function addMessageHistory(history) {
+            return dispatch((0, _index.addMessageHistory)(history));
+        },
+        setupChats: function setupChats(chatUpdates) {
+            return dispatch((0, _index.setupChats)(chatUpdates));
         },
         socketConnected: function socketConnected(webSocketRef) {
             return dispatch((0, _index.socketConnected)(webSocketRef));
+        },
+        onMessageReceive: function onMessageReceive(msg, topic, socket) {
+            return dispatch((0, _index.openChat)(msg, topic, socket));
         }
     };
 };
@@ -39160,7 +39196,7 @@ var Users = function (_React$Component) {
                 for (var _iterator = this.props.chatUpdates[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
                     var chatUpdate = _step.value;
 
-                    if ((0, _helperFunctions.equalArrays)(chatUpdate.chatUsers, this.getChatUsersArr(id).sort())) {
+                    if ((0, _helperFunctions.equalArrays)(chatUpdate.users, this.getChatUsersArr(id).sort()) && chatUpdate.noOfNotSeen > 0) {
                         return chatUpdate;
                     }
                 }
@@ -39192,14 +39228,24 @@ var Users = function (_React$Component) {
     }, {
         key: "onMessageReceive",
         value: function onMessageReceive(msg, topic) {
-            console.log(topic);
-            if (topic === "/topic/" + this.props.user.id) {
-                console.log("r");
-                console.log(msg);
-                this.props.addMessage(msg);
-            } else if (topic === "/topic/newMessages/" + this.props.user.id) {
-                console.log("test123123123");
-                console.log(msg);
+            switch (topic) {
+                case "/topic/" + this.props.user.id:
+                    {
+                        this.props.newMessage(msg, this.props.user.id, this.clientRef);
+                        break;
+                    }
+                case "/topic/history/" + this.props.user.id:
+                    {
+                        this.props.addMessageHistory(msg);
+                        break;
+                    }
+                case "/topic/newMessages/" + this.props.user.id:
+                    {
+                        this.props.setupChats(msg);
+                        break;
+                    }
+                default:
+                    console.log("Default onMessageReceive");
             }
         }
     }, {
@@ -39263,7 +39309,7 @@ var Users = function (_React$Component) {
                             );
                         })
                     ),
-                    _react2.default.createElement(_reactStomp2.default, { url: wsSourceUrl, topics: ["/topic/" + this.props.user.id, "/topic/newMessages/" + this.props.user.id],
+                    _react2.default.createElement(_reactStomp2.default, { url: wsSourceUrl, topics: ["/topic/" + this.props.user.id, "/topic/newMessages/" + this.props.user.id, "/topic/history/" + this.props.user.id],
                         onMessage: function onMessage(msg, topic) {
                             return _this2.onMessageReceive(msg, topic);
                         },
@@ -42645,7 +42691,7 @@ module.exports = __webpack_require__(634).version;
 /* 634 */
 /***/ (function(module, exports) {
 
-module.exports = {"_from":"websocket@latest","_id":"websocket@1.0.28","_inBundle":false,"_integrity":"sha512-00y/20/80P7H4bCYkzuuvvfDvh+dgtXi5kzDf3UcZwN6boTYaKvsrtZ5lIYm1Gsg48siMErd9M4zjSYfYFHTrA==","_location":"/websocket","_phantomChildren":{"ms":"2.0.0"},"_requested":{"type":"tag","registry":true,"raw":"websocket@latest","name":"websocket","escapedName":"websocket","rawSpec":"latest","saveSpec":null,"fetchSpec":"latest"},"_requiredBy":["/stompjs"],"_resolved":"https://registry.npmjs.org/websocket/-/websocket-1.0.28.tgz","_shasum":"9e5f6fdc8a3fe01d4422647ef93abdd8d45a78d3","_spec":"websocket@latest","_where":"C:\\Users\\kmackow\\Projects\\chat-grad-project-kamil\\node_modules\\stompjs","author":{"name":"Brian McKelvey","email":"theturtle32@gmail.com","url":"https://github.com/theturtle32"},"browser":"lib/browser.js","bugs":{"url":"https://github.com/theturtle32/WebSocket-Node/issues"},"bundleDependencies":false,"config":{"verbose":false},"contributors":[{"name":"Iñaki Baz Castillo","email":"ibc@aliax.net","url":"http://dev.sipdoc.net"}],"dependencies":{"debug":"^2.2.0","nan":"^2.11.0","typedarray-to-buffer":"^3.1.5","yaeti":"^0.0.6"},"deprecated":false,"description":"Websocket Client & Server Library implementing the WebSocket protocol as specified in RFC 6455.","devDependencies":{"buffer-equal":"^1.0.0","faucet":"^0.0.1","gulp":"git+https://github.com/gulpjs/gulp.git#4.0","gulp-jshint":"^2.0.4","jshint":"^2.0.0","jshint-stylish":"^2.2.1","tape":"^4.9.1"},"directories":{"lib":"./lib"},"engines":{"node":">=0.10.0"},"homepage":"https://github.com/theturtle32/WebSocket-Node","keywords":["websocket","websockets","socket","networking","comet","push","RFC-6455","realtime","server","client"],"license":"Apache-2.0","main":"index","name":"websocket","repository":{"type":"git","url":"git+https://github.com/theturtle32/WebSocket-Node.git"},"scripts":{"gulp":"gulp","install":"(node-gyp rebuild 2> builderror.log) || (exit 0)","test":"faucet test/unit"},"version":"1.0.28"}
+module.exports = {"_args":[["websocket@1.0.28","D:\\Development\\chat-grad-project-kamil"]],"_from":"websocket@1.0.28","_id":"websocket@1.0.28","_inBundle":false,"_integrity":"sha512-00y/20/80P7H4bCYkzuuvvfDvh+dgtXi5kzDf3UcZwN6boTYaKvsrtZ5lIYm1Gsg48siMErd9M4zjSYfYFHTrA==","_location":"/websocket","_optional":true,"_phantomChildren":{"ms":"2.0.0"},"_requested":{"type":"version","registry":true,"raw":"websocket@1.0.28","name":"websocket","escapedName":"websocket","rawSpec":"1.0.28","saveSpec":null,"fetchSpec":"1.0.28"},"_requiredBy":["/stompjs"],"_resolved":"https://registry.npmjs.org/websocket/-/websocket-1.0.28.tgz","_spec":"1.0.28","_where":"D:\\Development\\chat-grad-project-kamil","author":{"name":"Brian McKelvey","email":"theturtle32@gmail.com","url":"https://github.com/theturtle32"},"browser":"lib/browser.js","bugs":{"url":"https://github.com/theturtle32/WebSocket-Node/issues"},"config":{"verbose":false},"contributors":[{"name":"Iñaki Baz Castillo","email":"ibc@aliax.net","url":"http://dev.sipdoc.net"}],"dependencies":{"debug":"^2.2.0","nan":"^2.11.0","typedarray-to-buffer":"^3.1.5","yaeti":"^0.0.6"},"description":"Websocket Client & Server Library implementing the WebSocket protocol as specified in RFC 6455.","devDependencies":{"buffer-equal":"^1.0.0","faucet":"^0.0.1","gulp":"git+https://github.com/gulpjs/gulp.git#4.0","gulp-jshint":"^2.0.4","jshint":"^2.0.0","jshint-stylish":"^2.2.1","tape":"^4.9.1"},"directories":{"lib":"./lib"},"engines":{"node":">=0.10.0"},"homepage":"https://github.com/theturtle32/WebSocket-Node","keywords":["websocket","websockets","socket","networking","comet","push","RFC-6455","realtime","server","client"],"license":"Apache-2.0","main":"index","name":"websocket","repository":{"type":"git","url":"git+https://github.com/theturtle32/WebSocket-Node.git"},"scripts":{"gulp":"gulp","install":"(node-gyp rebuild 2> builderror.log) || (exit 0)","test":"faucet test/unit"},"version":"1.0.28"}
 
 /***/ }),
 /* 635 */
@@ -60843,10 +60889,12 @@ var HistoryList = function (_React$Component) {
                         return _react2.default.createElement(
                             "li",
                             { key: ind, style: _styles.styles.messageHistory },
-                            _react2.default.createElement("img", { src: _this2.getAvatar(message.id), style: _styles.styles.smallAvatar }),
+                            _react2.default.createElement("img", { src: message.authorAvatarUrl, style: _styles.styles.smallAvatar }),
                             _react2.default.createElement(
                                 "span",
                                 null,
+                                message.author || message.authorId,
+                                " ",
                                 message.message
                             )
                         );
