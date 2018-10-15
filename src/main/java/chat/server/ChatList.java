@@ -5,14 +5,14 @@ import lombok.Data;
 import java.util.List;
 
 @Data
-public class NotSeenMessage {
+public class ChatList {
 
     List<String> users;
     int noOfNotSeen;
 
-    NotSeenMessage() {}
+    ChatList() {}
 
-    NotSeenMessage(List<String> users, int noOfNotSeen) {
+    ChatList(List<String> users, int noOfNotSeen) {
 
         this.users = users;
         this.noOfNotSeen = noOfNotSeen;

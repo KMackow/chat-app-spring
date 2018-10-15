@@ -31,12 +31,15 @@ public class ServerController {
 
     }
 
-    private Chat newChat(List<String> chatUsers) {
+    private Chat newChat(List<String> chatUsers, String creator) {
         Map<String, Integer> usersMap = new HashMap<>();
         for (String user: chatUsers) {
             usersMap.put(user, 0);
         }
-        return new Chat(chatUsers, usersMap, new ArrayList<ChatMessage>());
+        Chat chat = new Chat(chatUsers, usersMap, new ArrayList<ChatMessage>());
+        chat.getMessageHistory().add(new ChatMessage("System message", "System message",
+                "", "Chat created by " + creator, Long.toString(System.currentTimeMillis())));
+        return chat;
     }
 
     @GetMapping("/api/user")
@@ -55,14 +58,17 @@ public class ServerController {
     public void handleSubscribeEvent(SessionSubscribeEvent event) {
         String topic = SimpMessageHeaderAccessor.wrap(event.getMessage()).getDestination();
         String user = event.getUser().getName();
-        if (topic.equals("/topic/newMessages/" + user)) {
-            List<NotSeenMessage> notSeen = new ArrayList<>();
-            for (Chat chat : chatRepository.findAllByUsers(user)) {
+        if (topic.equals("/topic/allChats/" + user)) {
+            List<ChatList> allUserChats = new ArrayList<>();
+            List<Chat> chats = chatRepository.findAllByUsers(user);
+            Collections.sort(chats, new ChatComparator());
+            for (Chat chat : chats) {
+                System.out.println("test1");
                 int noOfNotSeen = chat.getMessageHistory().size() - chat.getUsersLastSeen().get(user);
-                if (noOfNotSeen > 0)
-                notSeen.add(new NotSeenMessage(chat.users, noOfNotSeen));
+                allUserChats.add(new ChatList(chat.users, noOfNotSeen));
             }
-            this.simpMessagingTemplate.convertAndSend("/topic/newMessages/" + user, notSeen);
+            System.out.println(allUserChats);
+            this.simpMessagingTemplate.convertAndSend("/topic/allChats/" + user, allUserChats);
         }
     }
 
@@ -78,7 +84,7 @@ public class ServerController {
                 Long.toString(System.currentTimeMillis()));
         Chat chat = chatRepository.findByUsers(chatUsers);
         if (chat == null) {
-            chat = newChat(chatUsers);
+            chat = newChat(chatUsers, author.get("id"));
         }
         chat.getMessageHistory().add(newMessage);
         chat.getUsersLastSeen().put(author.get("id"), chat.getMessageHistory().size());
@@ -100,7 +106,7 @@ public class ServerController {
         int noOfMessagesRequested = Integer.parseInt(chatDetails.get("noOfMessages").get("noOfMessages"));
         Chat chat = chatRepository.findByUsers(chatUsers);
         if (chat == null) {
-            chat = newChat(chatUsers);
+            chat = newChat(chatUsers, user);
         }
         int totalNoOfMessages = chat.getMessageHistory().size();
         int noOfNotSeen = totalNoOfMessages - chat.getUsersLastSeen().get(user);
