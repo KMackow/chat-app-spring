@@ -1,12 +1,12 @@
 spring:
   data:
     mongodb:
-      uri: ${DB_URI}
+      uri: mongodb://kmackow:test123@ds157422.mlab.com:57422/chat-grad-project-kamil
 security:
   oauth2:
     client:
-      clientId: ${OAUTH_CLIENT_ID}
-      clientSecret: ${OAUTH_SECRET}
+      clientId: 8dc687b2af81a06e5d65
+      clientSecret: 34cf9d7bbcf7fa9865858ac53c886d903b16cda6
       accessTokenUri: https://github.com/login/oauth/access_token
       userAuthorizationUri: https://github.com/login/oauth/authorize
       tokenName: oauth_token

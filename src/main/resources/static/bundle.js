@@ -61,7 +61,7 @@
 /******/ 	
 /******/ 	
 /******/ 	var hotApplyOnUpdate = true;
-/******/ 	var hotCurrentHash = "67c072e9bfd6829fc256"; // eslint-disable-line no-unused-vars
+/******/ 	var hotCurrentHash = "0af736e46ec2137bcb17"; // eslint-disable-line no-unused-vars
 /******/ 	var hotRequestTimeout = 10000;
 /******/ 	var hotCurrentModuleData = {};
 /******/ 	var hotCurrentChildModule; // eslint-disable-line no-unused-vars
@@ -10936,8 +10936,6 @@ var equalArrays = exports.equalArrays = function equalArrays(arr1, arr2) {
         return false;
     }
     for (var i = 0; i < arr1.length; i++) {
-        console.log(arr1);
-        console.log(arr2);
         if (arr1[i] !== arr2[i]) {
             return false;
         }
@@ -60842,6 +60840,28 @@ var HistoryList = function (_React$Component) {
             })[0].avatarUrl;
         }
     }, {
+        key: "timeSince",
+        value: function timeSince(timestamp) {
+            var now = new Date();
+            var timeStamp = new Date(parseInt(timestamp));
+            var secondsPast = (now.getTime() - timeStamp.getTime()) / 1000;
+            if (secondsPast < 60) {
+                return "Just now";
+            }
+            if (secondsPast < 3600) {
+                return parseInt(secondsPast / 60) + "m ago";
+            }
+            if (secondsPast <= 86400) {
+                return parseInt(secondsPast / 3600) + "h ago";
+            }
+            if (secondsPast > 86400) {
+                var day = timeStamp.getDate();
+                var month = timeStamp.toDateString().match(/ [a-zA-Z]*/)[0].replace(" ", "");
+                var year = timeStamp.getFullYear() === now.getFullYear() ? "" : " " + timeStamp.getFullYear();
+                return "on " + day + " " + month + year;
+            }
+        }
+    }, {
         key: "render",
         value: function render() {
             var _this2 = this;
@@ -60877,6 +60897,12 @@ var HistoryList = function (_React$Component) {
                                 message.author || message.authorId,
                                 " ",
                                 message.message
+                            ),
+                            "|",
+                            _react2.default.createElement(
+                                "div",
+                                null,
+                                _this2.timeSince(message.timestamp)
                             )
                         );
                     })
