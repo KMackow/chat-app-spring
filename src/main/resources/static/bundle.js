@@ -61,7 +61,7 @@
 /******/ 	
 /******/ 	
 /******/ 	var hotApplyOnUpdate = true;
-/******/ 	var hotCurrentHash = "0af736e46ec2137bcb17"; // eslint-disable-line no-unused-vars
+/******/ 	var hotCurrentHash = "edfb99bec05e0857b2fa"; // eslint-disable-line no-unused-vars
 /******/ 	var hotRequestTimeout = 10000;
 /******/ 	var hotCurrentModuleData = {};
 /******/ 	var hotCurrentChildModule; // eslint-disable-line no-unused-vars
@@ -39278,8 +39278,7 @@ var Users = function (_React$Component) {
                                 _this2.checkIfUpdated(user.id) ? _this2.checkIfUpdated(user.id).noOfNotSeen > 10 ? _react2.default.createElement(
                                     "span",
                                     { style: _styles.styles.newMessage },
-                                    "10+",
-                                    _this2.newMessageArrived()
+                                    "10+"
                                 ) : _react2.default.createElement(
                                     "span",
                                     { style: _styles.styles.newMessage },
@@ -60895,10 +60894,9 @@ var HistoryList = function (_React$Component) {
                                 "span",
                                 null,
                                 message.author || message.authorId,
-                                " ",
+                                ": ",
                                 message.message
                             ),
-                            "|",
                             _react2.default.createElement(
                                 "div",
                                 null,
