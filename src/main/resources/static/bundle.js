@@ -61,7 +61,7 @@
 /******/ 	
 /******/ 	
 /******/ 	var hotApplyOnUpdate = true;
-/******/ 	var hotCurrentHash = "74e4404b4202096160f1"; // eslint-disable-line no-unused-vars
+/******/ 	var hotCurrentHash = "9b9d26d76f26e5565c02"; // eslint-disable-line no-unused-vars
 /******/ 	var hotRequestTimeout = 10000;
 /******/ 	var hotCurrentModuleData = {};
 /******/ 	var hotCurrentChildModule; // eslint-disable-line no-unused-vars
@@ -12948,7 +12948,7 @@ module.exports = Event;
 Object.defineProperty(exports, "__esModule", {
     value: true
 });
-exports.logOut = exports.requestHistory = exports.logIn = exports.openChat = exports.socketConnected = exports.addMessageHistory = exports.setupChats = exports.newMessage = exports.addMessage = undefined;
+exports.logOut = exports.requestHistory = exports.logIn = exports.openChat = exports.newMessage = exports.socketConnected = exports.addMessageHistory = exports.setupChats = exports.addMessage = undefined;
 
 var _axios = __webpack_require__(636);
 
@@ -13013,6 +13013,27 @@ var addMessage = exports.addMessage = function addMessage(message) {
     };
 };
 
+var setupChats = exports.setupChats = function setupChats(updatedChats) {
+    return {
+        type: "SET_UPDATED",
+        updatedChats: updatedChats
+    };
+};
+
+var addMessageHistory = exports.addMessageHistory = function addMessageHistory(history) {
+    return {
+        type: "ADD_MESSAGE_HISTORY",
+        messageHistory: history
+    };
+};
+
+var socketConnected = exports.socketConnected = function socketConnected(webSocketRef) {
+    return {
+        type: "SOCKET_CONNECTED",
+        webSocketRef: webSocketRef
+    };
+};
+
 var newMessage = exports.newMessage = function newMessage(message, user, socket) {
     return function (dispatch) {
         var users = [];
@@ -13052,27 +13073,6 @@ var newMessage = exports.newMessage = function newMessage(message, user, socket)
     };
 };
 
-var setupChats = exports.setupChats = function setupChats(updatedChats) {
-    return {
-        type: "SET_UPDATED",
-        updatedChats: updatedChats
-    };
-};
-
-var addMessageHistory = exports.addMessageHistory = function addMessageHistory(history) {
-    return {
-        type: "ADD_MESSAGE_HISTORY",
-        messageHistory: history
-    };
-};
-
-var socketConnected = exports.socketConnected = function socketConnected(webSocketRef) {
-    return {
-        type: "SOCKET_CONNECTED",
-        webSocketRef: webSocketRef
-    };
-};
-
 var openChat = exports.openChat = function openChat(user, chatUsers, socket) {
     return function (dispatch) {
         openedChatUsers = chatUsers.sort();
@@ -13094,22 +13094,6 @@ var logIn = exports.logIn = function logIn() {
             axios.get("/api/users").then(function (result) {
                 return dispatch(getUsers(result.data));
             });
-            // socket.emit("userRoom", user._id, function(userChats) {
-            //     dispatch(setupChats(userChats));
-            // });
-            // //todo: redsign chatUpdates store to include last seen
-            // //also work on multiple updates
-            // socket.on("newMessage", function newMessageReceived(message, chatUpdate) {
-            //     if (equalArrays(chatUpdate.chatUsers, openedChatUsers)) {
-            //         dispatch(addMessage(message));
-            //         socket.emit("updateSeen", chatUpdate.chatUsers, user._id);
-            //     } else {
-            //         dispatch(chatUpdated(chatUpdate));
-            //     }
-            // });
-            // socket.on("updateUsers", function updateUsers(users) {
-            //     dispatch(getUsers(users));
-            // })
         }).catch(function () {
             console.log("failed getting user details");
         });
@@ -13132,7 +13116,6 @@ var logOut = exports.logOut = function logOut() {
     return function (dispatch) {
         axios.post("/logout").then(function () {
             dispatch(logout());
-            // socket.disconnect();
             window.location.reload();
         }).catch(function (error) {
             console.log(error);
@@ -42691,7 +42674,7 @@ module.exports = __webpack_require__(634).version;
 /* 634 */
 /***/ (function(module, exports) {
 
-module.exports = {"_args":[["websocket@1.0.28","D:\\Development\\chat-grad-project-kamil"]],"_from":"websocket@1.0.28","_id":"websocket@1.0.28","_inBundle":false,"_integrity":"sha512-00y/20/80P7H4bCYkzuuvvfDvh+dgtXi5kzDf3UcZwN6boTYaKvsrtZ5lIYm1Gsg48siMErd9M4zjSYfYFHTrA==","_location":"/websocket","_optional":true,"_phantomChildren":{"ms":"2.0.0"},"_requested":{"type":"version","registry":true,"raw":"websocket@1.0.28","name":"websocket","escapedName":"websocket","rawSpec":"1.0.28","saveSpec":null,"fetchSpec":"1.0.28"},"_requiredBy":["/stompjs"],"_resolved":"https://registry.npmjs.org/websocket/-/websocket-1.0.28.tgz","_spec":"1.0.28","_where":"D:\\Development\\chat-grad-project-kamil","author":{"name":"Brian McKelvey","email":"theturtle32@gmail.com","url":"https://github.com/theturtle32"},"browser":"lib/browser.js","bugs":{"url":"https://github.com/theturtle32/WebSocket-Node/issues"},"config":{"verbose":false},"contributors":[{"name":"Iñaki Baz Castillo","email":"ibc@aliax.net","url":"http://dev.sipdoc.net"}],"dependencies":{"debug":"^2.2.0","nan":"^2.11.0","typedarray-to-buffer":"^3.1.5","yaeti":"^0.0.6"},"description":"Websocket Client & Server Library implementing the WebSocket protocol as specified in RFC 6455.","devDependencies":{"buffer-equal":"^1.0.0","faucet":"^0.0.1","gulp":"git+https://github.com/gulpjs/gulp.git#4.0","gulp-jshint":"^2.0.4","jshint":"^2.0.0","jshint-stylish":"^2.2.1","tape":"^4.9.1"},"directories":{"lib":"./lib"},"engines":{"node":">=0.10.0"},"homepage":"https://github.com/theturtle32/WebSocket-Node","keywords":["websocket","websockets","socket","networking","comet","push","RFC-6455","realtime","server","client"],"license":"Apache-2.0","main":"index","name":"websocket","repository":{"type":"git","url":"git+https://github.com/theturtle32/WebSocket-Node.git"},"scripts":{"gulp":"gulp","install":"(node-gyp rebuild 2> builderror.log) || (exit 0)","test":"faucet test/unit"},"version":"1.0.28"}
+module.exports = {"_from":"websocket@latest","_id":"websocket@1.0.28","_inBundle":false,"_integrity":"sha512-00y/20/80P7H4bCYkzuuvvfDvh+dgtXi5kzDf3UcZwN6boTYaKvsrtZ5lIYm1Gsg48siMErd9M4zjSYfYFHTrA==","_location":"/websocket","_phantomChildren":{"ms":"2.0.0"},"_requested":{"type":"tag","registry":true,"raw":"websocket@latest","name":"websocket","escapedName":"websocket","rawSpec":"latest","saveSpec":null,"fetchSpec":"latest"},"_requiredBy":["/stompjs"],"_resolved":"https://registry.npmjs.org/websocket/-/websocket-1.0.28.tgz","_shasum":"9e5f6fdc8a3fe01d4422647ef93abdd8d45a78d3","_spec":"websocket@latest","_where":"C:\\Users\\kmackow\\Projects\\chat-grad-project-kamil\\node_modules\\stompjs","author":{"name":"Brian McKelvey","email":"theturtle32@gmail.com","url":"https://github.com/theturtle32"},"browser":"lib/browser.js","bugs":{"url":"https://github.com/theturtle32/WebSocket-Node/issues"},"bundleDependencies":false,"config":{"verbose":false},"contributors":[{"name":"Iñaki Baz Castillo","email":"ibc@aliax.net","url":"http://dev.sipdoc.net"}],"dependencies":{"debug":"^2.2.0","nan":"^2.11.0","typedarray-to-buffer":"^3.1.5","yaeti":"^0.0.6"},"deprecated":false,"description":"Websocket Client & Server Library implementing the WebSocket protocol as specified in RFC 6455.","devDependencies":{"buffer-equal":"^1.0.0","faucet":"^0.0.1","gulp":"git+https://github.com/gulpjs/gulp.git#4.0","gulp-jshint":"^2.0.4","jshint":"^2.0.0","jshint-stylish":"^2.2.1","tape":"^4.9.1"},"directories":{"lib":"./lib"},"engines":{"node":">=0.10.0"},"homepage":"https://github.com/theturtle32/WebSocket-Node","keywords":["websocket","websockets","socket","networking","comet","push","RFC-6455","realtime","server","client"],"license":"Apache-2.0","main":"index","name":"websocket","repository":{"type":"git","url":"git+https://github.com/theturtle32/WebSocket-Node.git"},"scripts":{"gulp":"gulp","install":"(node-gyp rebuild 2> builderror.log) || (exit 0)","test":"faucet test/unit"},"version":"1.0.28"}
 
 /***/ }),
 /* 635 */

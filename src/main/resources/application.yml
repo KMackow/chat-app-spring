@@ -1,0 +1,16 @@
+spring:
+  data:
+    mongodb:
+      uri: ${DB_URI}
+security:
+  oauth2:
+    client:
+      clientId: ${OAUTH_CLIENT_ID}
+      clientSecret: ${OAUTH_SECRET}
+      accessTokenUri: https://github.com/login/oauth/access_token
+      userAuthorizationUri: https://github.com/login/oauth/authorize
+      tokenName: oauth_token
+      authenticationScheme: query
+      clientAuthenticationScheme: form
+    resource:
+      userInfoUri: https://api.github.com/user
