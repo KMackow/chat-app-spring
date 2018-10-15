@@ -61,7 +61,7 @@
 /******/ 	
 /******/ 	
 /******/ 	var hotApplyOnUpdate = true;
-/******/ 	var hotCurrentHash = "9b9d26d76f26e5565c02"; // eslint-disable-line no-unused-vars
+/******/ 	var hotCurrentHash = "67c072e9bfd6829fc256"; // eslint-disable-line no-unused-vars
 /******/ 	var hotRequestTimeout = 10000;
 /******/ 	var hotCurrentModuleData = {};
 /******/ 	var hotCurrentChildModule; // eslint-disable-line no-unused-vars
@@ -12964,6 +12964,13 @@ var NO_OF_MESSAGES = 10;
 
 var openedChatUsers = [];
 
+function newMessageArrived() {
+    var audio = document.createElement("audio");
+    audio.setAttribute("src", "./ding.wav");
+    audio.setAttribute("muted", "muted");
+    audio.play();
+}
+
 function loginSuccessful(user) {
     return {
         type: "LOGIN_SUCCESSFUL",
@@ -13064,11 +13071,11 @@ var newMessage = exports.newMessage = function newMessage(message, user, socket)
 
         users.sort();
         if ((0, _helperFunctions.equalArrays)(users, openedChatUsers)) {
-            console.log(user);
             socket.sendMessage("/app/updateSeen/" + user, users);
             dispatch(addMessage(message.message));
         } else {
             dispatch(chatUpdated({ users: users, noOfNotSeen: message.noOfNotSeen }));
+            newMessageArrived();
         }
     };
 };
@@ -39201,14 +39208,6 @@ var Users = function (_React$Component) {
             return false;
         }
     }, {
-        key: "newMessageArrived",
-        value: function newMessageArrived() {
-            var audio = document.createElement("audio");
-            audio.setAttribute("src", "./ding.wav");
-            audio.setAttribute("muted", "muted");
-            audio.play();
-        }
-    }, {
         key: "onMessageReceive",
         value: function onMessageReceive(msg, topic) {
             switch (topic) {
@@ -39286,7 +39285,6 @@ var Users = function (_React$Component) {
                                 ) : _react2.default.createElement(
                                     "span",
                                     { style: _styles.styles.newMessage },
-                                    _this2.newMessageArrived(),
                                     _this2.checkIfUpdated(user.id).noOfNotSeen
                                 ) : ""
                             );
