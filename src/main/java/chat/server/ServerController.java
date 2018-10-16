@@ -105,6 +105,12 @@ public class ServerController {
         Chat chat = chatRepository.findByUsers(chatUsers);
         if (chat == null) {
             chat = newChat(chatUsers, user);
+            chat.getUsersLastSeen().put(user, chat.getMessageHistory().size());
+            for (String eachUser: chat.getUsers()) {
+                ReturnMessage returnMessage = new ReturnMessage(chat.getMessageHistory().get(0), chat.getUsers(),
+                        chat.getUsersLastSeen().get(user));
+                this.simpMessagingTemplate.convertAndSend("/topic/newChat/" + eachUser, returnMessage);
+            }
         }
         int totalNoOfMessages = chat.getMessageHistory().size();
         int noOfNotSeen = totalNoOfMessages - chat.getUsersLastSeen().get(user);

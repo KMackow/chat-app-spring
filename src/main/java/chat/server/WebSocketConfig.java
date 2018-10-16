@@ -18,12 +18,6 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
     }
 
     @Override
-    public void configureWebSocketTransport(WebSocketTransportRegistration registry)
-    {
-        registry.setMessageSizeLimit(10000000);
-    }
-
-    @Override
     public void registerStompEndpoints(StompEndpointRegistry registry) {
         registry.addEndpoint("/handler").withSockJS();
     }

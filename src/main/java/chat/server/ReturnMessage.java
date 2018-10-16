@@ -19,4 +19,10 @@ public class ReturnMessage {
         this.users = users;
         this.noOfNotSeen = noOfNotSeen;
     }
+
+    ReturnMessage(ChatMessage chatmessage, List<String> users, int noOfNotSeen) {
+        this.message = chatmessage;
+        this.users = users;
+        this.noOfNotSeen = noOfNotSeen;
+    }
 }
