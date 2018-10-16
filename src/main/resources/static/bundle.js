@@ -61,7 +61,7 @@
 /******/ 	
 /******/ 	
 /******/ 	var hotApplyOnUpdate = true;
-/******/ 	var hotCurrentHash = "187a55b5aea9483adf8b"; // eslint-disable-line no-unused-vars
+/******/ 	var hotCurrentHash = "27e134d97f16efeb1081"; // eslint-disable-line no-unused-vars
 /******/ 	var hotRequestTimeout = 10000;
 /******/ 	var hotCurrentModuleData = {};
 /******/ 	var hotCurrentChildModule; // eslint-disable-line no-unused-vars
@@ -61187,7 +61187,9 @@ var ListOfChats = function (_React$Component) {
                                     return _react2.default.createElement(
                                         "span",
                                         { key: ind },
-                                        user + (ind !== chat.users.length - 1 ? ", " : "")
+                                        (_this2.props.users.filter(function (user1) {
+                                            return user1.id === user;
+                                        })[0].name || user) + (ind !== chat.users.length - 1 ? ", " : "")
                                     );
                                 }),
                                 _this2.checkIfUpdated(chat.users) ? _this2.checkIfUpdated(chat.users).noOfNotSeen > 10 ? _react2.default.createElement(
