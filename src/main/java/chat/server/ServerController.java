@@ -17,15 +17,13 @@ import org.springframework.web.socket.messaging.SessionSubscribeEvent;
 public class ServerController {
 
     private final UserRepository userRepository;
-    private final ChatMessageRepository chatMessageRepository;
     private final ChatRepository chatRepository;
     private SimpMessagingTemplate simpMessagingTemplate;
 
-    ServerController(UserRepository userRepository, ChatMessageRepository chatMessageRepository,
-                     ChatRepository chatRepository, SimpMessagingTemplate simpMessagingTemplate) {
+    ServerController(UserRepository userRepository, ChatRepository chatRepository,
+                     SimpMessagingTemplate simpMessagingTemplate) {
 
         this.userRepository = userRepository;
-        this.chatMessageRepository = chatMessageRepository;
         this.chatRepository = chatRepository;
         this.simpMessagingTemplate = simpMessagingTemplate;
 

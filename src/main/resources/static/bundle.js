@@ -61,7 +61,7 @@
 /******/ 	
 /******/ 	
 /******/ 	var hotApplyOnUpdate = true;
-/******/ 	var hotCurrentHash = "73d676f94323b633a1db"; // eslint-disable-line no-unused-vars
+/******/ 	var hotCurrentHash = "187a55b5aea9483adf8b"; // eslint-disable-line no-unused-vars
 /******/ 	var hotRequestTimeout = 10000;
 /******/ 	var hotCurrentModuleData = {};
 /******/ 	var hotCurrentChildModule; // eslint-disable-line no-unused-vars
@@ -9425,8 +9425,9 @@ var newMessage = exports.newMessage = function newMessage(message, user, socket)
         if ((0, _helperFunctions.equalArrays)(users, openedChatUsers)) {
             socket.sendMessage("/app/updateSeen/" + user, users);
             dispatch(addMessage(message.message));
+            dispatch(chatUpdated([{ users: users, noOfNotSeen: 0 }]));
         } else {
-            dispatch(chatUpdated({ users: users, noOfNotSeen: message.noOfNotSeen }));
+            dispatch(chatUpdated([{ users: users, noOfNotSeen: message.noOfNotSeen }]));
             newMessageArrived();
         }
     };
@@ -9473,10 +9474,8 @@ var requestHistory = exports.requestHistory = function requestHistory(user, chat
 
 var logOut = exports.logOut = function logOut() {
     return function (dispatch) {
-        axios.post("/logout").then(function () {
-            dispatch(logout());
-            window.location.reload();
-        }).catch(function (error) {
+        dispatch(logout());
+        axios.post("/logout").catch(function (error) {
             console.log(error);
         });
     };
@@ -29020,13 +29019,13 @@ var chats = function chats() {
         case "ALL_CHATS":
             return action.chats;
         case "CHAT_UPDATED":
-            return state.filter(function (chat) {
-                return !(0, _helperFunctions.equalArrays)(chat.users, action.chatUpdate.users);
-            }).concat(action.chatUpdate);
+            return action.chatUpdate.concat(state.filter(function (chat) {
+                return !(0, _helperFunctions.equalArrays)(chat.users, action.chatUpdate[0].users);
+            }));
         case "REMOVE_UPDATE":
-            return state.filter(function (chat) {
-                return !(0, _helperFunctions.equalArrays)(chat.users, action.chatUsers);
-            }).concat({ users: action.chatUsers, noOFNotSeen: 0 });
+            return state.map(function (chat) {
+                return !(0, _helperFunctions.equalArrays)(chat.users, action.chatUsers) ? chat : { users: action.chatUsers, noOFNotSeen: 0 };
+            });
         default:
             return state;
     }
@@ -39300,6 +39299,9 @@ var Users = function (_React$Component) {
                         ref: function ref(client) {
                             _this2.clientRef = client;
                         },
+                        autoReconnect: false,
+                        heartbeatOutgoing: 10000,
+                        onDisconnect: this.props.logOut,
                         debug: false }),
                     _react2.default.createElement(
                         "button",
@@ -61181,6 +61183,13 @@ var ListOfChats = function (_React$Component) {
                                 { key: ind, onClick: function onClick() {
                                         return _this2.props.openChat(_this2.props.user.id, chat.users, _this2.props.webSocketRef);
                                     } },
+                                chat.users.map(function (user, ind) {
+                                    return _react2.default.createElement(
+                                        "span",
+                                        { key: ind },
+                                        user + (ind !== chat.users.length - 1 ? ", " : "")
+                                    );
+                                }),
                                 _this2.checkIfUpdated(chat.users) ? _this2.checkIfUpdated(chat.users).noOfNotSeen > 10 ? _react2.default.createElement(
                                     "span",
                                     { style: _styles.styles.newMessage },
@@ -61190,14 +61199,7 @@ var ListOfChats = function (_React$Component) {
                                     { style: _styles.styles.newMessage },
                                     _this2.checkIfUpdated(chat.users).noOfNotSeen,
                                     " "
-                                ) : "",
-                                chat.users.map(function (user, ind) {
-                                    return _react2.default.createElement(
-                                        "span",
-                                        { key: ind },
-                                        user + (ind !== _this2.props.chats.length - 1 ? ", " : "")
-                                    );
-                                })
+                                ) : ""
                             );
                         })
                     )
