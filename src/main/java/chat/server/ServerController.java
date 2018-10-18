@@ -42,7 +42,8 @@ public class ServerController {
                 .author("System message")
                 .authorId("System message")
                 .authorAvatarUrl("").message("Chat created by " + creator)
-                .timestamp(Long.toString(System.currentTimeMillis())).build());
+                .timestamp(Long.toString(System.currentTimeMillis()))
+                .build());
         return chat;
     }
 
@@ -128,18 +129,20 @@ public class ServerController {
                 this.simpMessagingTemplate.convertAndSend("/topic/newChat/" + eachUser, returnMessage);
                 }
         }
-        int totalNoOfMessages = chat.getMessageHistory().size();
-        int noOfNotSeen = totalNoOfMessages - chat.getUsersLastSeen().get(user);
-        int from = Math.max(Math.min(totalNoOfMessages - noOfNotSeen,
-                totalNoOfMessages - noOfMessagesRequested), 0);
-        int to = totalNoOfMessages;
-        if (noOfMessagesRequested > 10) {
-            to = Math.max(totalNoOfMessages - noOfMessagesRequested / 2, 0);
+        else {
+            int totalNoOfMessages = chat.getMessageHistory().size();
+            int noOfNotSeen = totalNoOfMessages - chat.getUsersLastSeen().get(user);
+            int from = Math.max(Math.min(totalNoOfMessages - noOfNotSeen,
+                    totalNoOfMessages - noOfMessagesRequested), 0);
+            int to = totalNoOfMessages;
+            if (noOfMessagesRequested > 10) {
+                to = Math.max(totalNoOfMessages - noOfMessagesRequested / 2, 0);
+            }
+            List<ChatMessage> history = chat.getMessageHistory().subList(from, to);
+            chat.getUsersLastSeen().put(user, chat.getMessageHistory().size());
+            this.simpMessagingTemplate.convertAndSend("/topic/history/" + user, history);
         }
-        List<ChatMessage> history = chat.getMessageHistory().subList(from, to);
-        chat.getUsersLastSeen().put(user, chat.getMessageHistory().size());
         chatRepository.save(chat);
-        this.simpMessagingTemplate.convertAndSend("/topic/history/" + user, history);
     }
 
     @MessageMapping("/updateSeen/{userId}")
