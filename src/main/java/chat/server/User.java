@@ -1,5 +1,6 @@
 package chat.server;
 
+import lombok.Builder;
 import lombok.Data;
 
 import org.springframework.data.annotation.Id;
@@ -7,6 +8,7 @@ import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.data.mongodb.repository.config.EnableMongoRepositories;
 
 @Data
+@Builder
 @Document(collection = "users")
 public class User {
 

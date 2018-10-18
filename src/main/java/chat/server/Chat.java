@@ -1,5 +1,6 @@
 package chat.server;
 
+import lombok.Builder;
 import lombok.Data;
 
 import org.springframework.data.annotation.Id;
@@ -10,6 +11,7 @@ import java.util.List;
 import java.util.Map;
 
 @Data
+@Builder
 @Document(collection = "chats")
 public class Chat {
     @Id
@@ -27,4 +29,9 @@ public class Chat {
         this.messageHistory = messageHistory;
     }
 
+    public static class ChatBuilder {
+        public Chat build() {
+            return new Chat(this.users, this.usersLastSeen, this.messageHistory);
+        }
+    }
 }

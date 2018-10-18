@@ -1,10 +1,12 @@
 package chat.server;
 
+import lombok.Builder;
 import lombok.Data;
 
 import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.data.mongodb.repository.config.EnableMongoRepositories;
 
+@Builder
 @Data
 @Document(collection = "messages")
 public class ChatMessage {

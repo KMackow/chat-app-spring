@@ -61,7 +61,7 @@
 /******/ 	
 /******/ 	
 /******/ 	var hotApplyOnUpdate = true;
-/******/ 	var hotCurrentHash = "40f5172ed5e3c808d9ef"; // eslint-disable-line no-unused-vars
+/******/ 	var hotCurrentHash = "4dd8dcd6e944c1baf11d"; // eslint-disable-line no-unused-vars
 /******/ 	var hotRequestTimeout = 10000;
 /******/ 	var hotCurrentModuleData = {};
 /******/ 	var hotCurrentChildModule; // eslint-disable-line no-unused-vars
@@ -9324,7 +9324,7 @@ module.exports = XHRCorsObject;
 Object.defineProperty(exports, "__esModule", {
     value: true
 });
-exports.logOut = exports.requestHistory = exports.logIn = exports.openChat = exports.NewChat = exports.newMessage = exports.chatAdded = exports.socketConnected = exports.addMessageHistory = exports.setupChats = exports.addMessage = undefined;
+exports.logOut = exports.logIn = exports.openChat = exports.requestHistory = exports.newMessage = exports.chatAdded = exports.socketConnected = exports.addMessageHistory = exports.setupChats = exports.addMessage = undefined;
 
 var _axios = __webpack_require__(636);
 
@@ -9335,7 +9335,7 @@ var _helperFunctions = __webpack_require__(106);
 function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj.default = obj; return newObj; } }
 
 // let socket = io();
-var NO_OF_MESSAGES = 10;
+var noOfMessages = 10;
 // import io from "socket.io-client";
 
 var openedChatUsers = [];
@@ -9464,18 +9464,26 @@ var newMessage = exports.newMessage = function newMessage(message, user, socket)
     };
 };
 
-var NewChat = exports.NewChat = function NewChat(msg) {
-    return function (dispatch) {};
+var requestHistory = exports.requestHistory = function requestHistory(user, chatUsers, socket) {
+    return function (dispatch) {
+        noOfMessages *= 2;
+        socket.sendMessage("/app/history", JSON.stringify({
+            user: { user: user },
+            chatUsers: Object.assign({}, chatUsers),
+            noOfMessages: { noOfMessages: noOfMessages }
+        }));
+    };
 };
 
 var openChat = exports.openChat = function openChat(user, chatUsers, socket) {
     return function (dispatch) {
         openedChatUsers = chatUsers.sort();
         dispatch(newChat(openedChatUsers));
+        noOfMessages = 10;
         socket.sendMessage("/app/history", JSON.stringify({
             user: { user: user },
             chatUsers: Object.assign({}, chatUsers),
-            noOfMessages: { noOfMessages: NO_OF_MESSAGES }
+            noOfMessages: { noOfMessages: noOfMessages }
         }));
         dispatch(removeUpdate(openedChatUsers));
     };
@@ -9493,18 +9501,6 @@ var logIn = exports.logIn = function logIn() {
             console.log("failed getting user details");
         });
     };
-};
-//todo use seen to mark last seen
-var requestHistory = exports.requestHistory = function requestHistory(user, chatUsers, noOfMessages) {
-    // return (dispatch) => {
-    //     socket.emit("requestHistory", {
-    //         user: user,
-    //         chatUsers: chatUsers,
-    //         noOfMessages: noOfMessages
-    //     }, function(history, seen) {
-    //         dispatch(addMessageHistory(history));
-    //     });
-    // }
 };
 
 var logOut = exports.logOut = function logOut() {
@@ -29012,13 +29008,13 @@ var chatRoom = function chatRoom() {
             return {
                 visible: true,
                 chatUsers: action.chatUsers,
-                messageHistory: state.messageHistory
+                messageHistory: []
             };
         case "ADD_MESSAGE_HISTORY":
             return {
                 visible: state.visible,
                 chatUsers: state.chatUsers,
-                messageHistory: action.messageHistory
+                messageHistory: action.messageHistory.concat(state.messageHistory)
             };
         case "ADD_MESSAGE":
             return {
@@ -39266,7 +39262,6 @@ var Users = function (_React$Component) {
                     }
                 case "/topic/newChat/" + this.props.user.id:
                     {
-                        console.log("test123");
                         this.props.chatAdded({ users: msg.users, noOfNotSeen: msg.noOfNotSeen });
                         this.props.newMessage(msg, this.props.user.id, this.clientRef);
                         break;
@@ -60833,14 +60828,15 @@ var mapStateToProps = function mapStateToProps(state) {
         user: state.login.user,
         users: state.users,
         chatUsers: state.chatRoom.chatUsers,
-        messages: state.chatRoom.messageHistory
+        messages: state.chatRoom.messageHistory,
+        webSocketRef: state.login.webSocketRef
     };
 };
 
 var mapDispatchToProps = function mapDispatchToProps(dispatch) {
     return {
-        requestHistory: function requestHistory(user, chatUsers, noOfMessages) {
-            return dispatch((0, _index.requestHistory)(user, chatUsers, noOfMessages));
+        requestHistory: function requestHistory(user, users, socket) {
+            return dispatch((0, _index.requestHistory)(user, users, socket));
         }
     };
 };
@@ -60933,6 +60929,13 @@ var HistoryList = function (_React$Component) {
                             })[0].name || id) + (ind !== _this2.props.chatUsers.length - 1 ? ", " : "")
                         );
                     })
+                ),
+                _react2.default.createElement(
+                    "button",
+                    { className: "button", onClick: function onClick() {
+                            return _this2.props.requestHistory(_this2.props.user.id, _this2.props.chatUsers, _this2.props.webSocketRef);
+                        } },
+                    "More History"
                 ),
                 _react2.default.createElement(
                     "ul",

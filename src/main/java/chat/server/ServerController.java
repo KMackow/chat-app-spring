@@ -30,20 +30,30 @@ public class ServerController {
     }
 
     private Chat newChat(List<String> chatUsers, String creator) {
-        Map<String, Integer> usersMap = new HashMap<>();
+        Map<String, Integer> usersLastSeen = new HashMap<>();
         for (String user: chatUsers) {
-            usersMap.put(user, 0);
+            usersLastSeen.put(user, 0);
         }
-        Chat chat = new Chat(chatUsers, usersMap, new ArrayList<ChatMessage>());
-        chat.getMessageHistory().add(new ChatMessage("System message", "System message",
-                "", "Chat created by " + creator, Long.toString(System.currentTimeMillis())));
+        Chat chat = Chat.builder().users(chatUsers)
+                .usersLastSeen(usersLastSeen)
+                .messageHistory(new ArrayList<ChatMessage>())
+                .build();
+        chat.getMessageHistory().add(ChatMessage.builder()
+                .author("System message")
+                .authorId("System message")
+                .authorAvatarUrl("").message("Chat created by " + creator)
+                .timestamp(Long.toString(System.currentTimeMillis())).build());
         return chat;
     }
 
     @GetMapping("/api/user")
     public User user(OAuth2Authentication authentication) {
         Map<String, String> userDetails = (Map<String, String>) authentication.getUserAuthentication().getDetails();
-        User newUser = new User(userDetails.get("login"), userDetails.get("name"), userDetails.get("avatar_url"));
+        User newUser = User.builder()
+                .id(userDetails.get("login"))
+                .name(userDetails.get("name"))
+                .avatarUrl(userDetails.get("avatar_url"))
+                .build();
         return userRepository.save(newUser);
     }
 
@@ -57,15 +67,13 @@ public class ServerController {
         String topic = SimpMessageHeaderAccessor.wrap(event.getMessage()).getDestination();
         String user = event.getUser().getName();
         if (topic.equals("/topic/allChats/" + user)) {
-            List<ChatList> allUserChats = new ArrayList<>();
+            List<UserChatsList> allUserChats = new ArrayList<>();
             List<Chat> chats = chatRepository.findAllByUsers(user);
             Collections.sort(chats, new ChatComparator());
             for (Chat chat : chats) {
-                System.out.println("test1");
                 int noOfNotSeen = chat.getMessageHistory().size() - chat.getUsersLastSeen().get(user);
-                allUserChats.add(new ChatList(chat.users, noOfNotSeen));
+                allUserChats.add(new UserChatsList(chat.users, noOfNotSeen));
             }
-            System.out.println(allUserChats);
             this.simpMessagingTemplate.convertAndSend("/topic/allChats/" + user, allUserChats);
         }
     }
@@ -77,9 +85,13 @@ public class ServerController {
         List<String> chatUsers = new ArrayList<String>(message.get("chatUsers").values());
         Collections.sort(chatUsers);
         Map<String, String> author = message.get("author");
-        ChatMessage newMessage = new ChatMessage(author.get("name"), author.get("id"),
-                author.get("avatarUrl"), message.get("message").get("message"),
-                Long.toString(System.currentTimeMillis()));
+        ChatMessage newMessage = ChatMessage.builder()
+                .author(author.get("name"))
+                .authorId(author.get("id"))
+                .authorAvatarUrl(author.get("avatarUrl"))
+                .message(message.get("message").get("message"))
+                .timestamp(Long.toString(System.currentTimeMillis()))
+                .build();
         Chat chat = chatRepository.findByUsers(chatUsers);
         if (chat == null) {
             chat = newChat(chatUsers, author.get("id"));
@@ -88,9 +100,10 @@ public class ServerController {
         chat.getUsersLastSeen().put(author.get("id"), chat.getMessageHistory().size());
         chatRepository.save(chat);
         for (String user: chat.getUsers()) {
-            ReturnMessage returnMessage = new ReturnMessage(newMessage.getAuthor(), newMessage.getAuthorId(),
-                    newMessage.getAuthorAvatarUrl(), newMessage.getMessage(), newMessage.getTimestamp(),
-                    chatUsers, chat.getMessageHistory().size() - chat.getUsersLastSeen().get(user));
+            ReturnMessage returnMessage = ReturnMessage.builder().message(newMessage)
+                    .users(chatUsers)
+                    .noOfNotSeen(chat.getMessageHistory().size() - chat.getUsersLastSeen().get(user))
+                    .build();
             this.simpMessagingTemplate.convertAndSend("/topic/" + user, returnMessage);
         }
 
@@ -107,20 +120,28 @@ public class ServerController {
             chat = newChat(chatUsers, user);
             chat.getUsersLastSeen().put(user, chat.getMessageHistory().size());
             for (String eachUser: chat.getUsers()) {
-                ReturnMessage returnMessage = new ReturnMessage(chat.getMessageHistory().get(0), chat.getUsers(),
-                        chat.getUsersLastSeen().get(user));
+                ReturnMessage returnMessage = ReturnMessage.builder()
+                        .message(chat.getMessageHistory().get(0))
+                        .users(chat.getUsers())
+                        .noOfNotSeen(chat.getUsersLastSeen().get(user))
+                        .build();
                 this.simpMessagingTemplate.convertAndSend("/topic/newChat/" + eachUser, returnMessage);
-            }
+                }
         }
         int totalNoOfMessages = chat.getMessageHistory().size();
         int noOfNotSeen = totalNoOfMessages - chat.getUsersLastSeen().get(user);
-        int noOfMessages = Math.max(Math.min(totalNoOfMessages - noOfNotSeen,
+        int from = Math.max(Math.min(totalNoOfMessages - noOfNotSeen,
                 totalNoOfMessages - noOfMessagesRequested), 0);
-        List<ChatMessage> history = chat.getMessageHistory().subList(noOfMessages, totalNoOfMessages);
+        int to = totalNoOfMessages;
+        if (noOfMessagesRequested > 10) {
+            to = Math.max(totalNoOfMessages - noOfMessagesRequested / 2, 0);
+        }
+        List<ChatMessage> history = chat.getMessageHistory().subList(from, to);
         chat.getUsersLastSeen().put(user, chat.getMessageHistory().size());
         chatRepository.save(chat);
         this.simpMessagingTemplate.convertAndSend("/topic/history/" + user, history);
     }
+
     @MessageMapping("/updateSeen/{userId}")
     public void updateSeen(@DestinationVariable String userId, @Payload String users) throws Exception {
         List<String> chatUsers = Arrays.asList(users.split(","));
