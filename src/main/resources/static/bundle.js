@@ -61,7 +61,7 @@
 /******/ 	
 /******/ 	
 /******/ 	var hotApplyOnUpdate = true;
-/******/ 	var hotCurrentHash = "9c981b708429e7d37a9f"; // eslint-disable-line no-unused-vars
+/******/ 	var hotCurrentHash = "ac3154c0ade36cfe49a6"; // eslint-disable-line no-unused-vars
 /******/ 	var hotRequestTimeout = 10000;
 /******/ 	var hotCurrentModuleData = {};
 /******/ 	var hotCurrentChildModule; // eslint-disable-line no-unused-vars
@@ -61050,6 +61050,10 @@ var SendMessage = function (_React$Component) {
                     { onSubmit: function onSubmit(e) {
                             e.preventDefault();
                             if (!input.value.trim()) {
+                                return;
+                            }
+                            if (input.value.length > 1000) {
+                                alert("Message too long, maximum 1000 characters");
                                 return;
                             }
                             _this2.props.webSocketRef.sendMessage("/app/" + _this2.props.user.id, JSON.stringify({
