@@ -61,7 +61,7 @@
 /******/ 	
 /******/ 	
 /******/ 	var hotApplyOnUpdate = true;
-/******/ 	var hotCurrentHash = "4dd8dcd6e944c1baf11d"; // eslint-disable-line no-unused-vars
+/******/ 	var hotCurrentHash = "9c981b708429e7d37a9f"; // eslint-disable-line no-unused-vars
 /******/ 	var hotRequestTimeout = 10000;
 /******/ 	var hotCurrentModuleData = {};
 /******/ 	var hotCurrentChildModule; // eslint-disable-line no-unused-vars
@@ -61070,7 +61070,7 @@ var SendMessage = function (_React$Component) {
                     _react2.default.createElement(
                         "div",
                         null,
-                        _react2.default.createElement("textarea", { ref: function ref(node) {
+                        _react2.default.createElement("input", { ref: function ref(node) {
                                 return input = node;
                             }, maxLength: "1000", placeholder: "Type your message" }),
                         _react2.default.createElement(
