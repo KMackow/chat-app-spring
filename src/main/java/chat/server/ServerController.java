@@ -29,24 +29,6 @@ public class ServerController {
 
     }
 
-    private Chat newChat(List<String> chatUsers, String creator) {
-        Map<String, Integer> usersLastSeen = new HashMap<>();
-        for (String user: chatUsers) {
-            usersLastSeen.put(user, 0);
-        }
-        Chat chat = Chat.builder().users(chatUsers)
-                .usersLastSeen(usersLastSeen)
-                .messageHistory(new ArrayList<ChatMessage>())
-                .build();
-        chat.getMessageHistory().add(ChatMessage.builder()
-                .author("System message")
-                .authorId("System message")
-                .authorAvatarUrl("").message("Chat created by " + creator)
-                .timestamp(Long.toString(System.currentTimeMillis()))
-                .build());
-        return chat;
-    }
-
     @GetMapping("/api/user")
     public User user(OAuth2Authentication authentication) {
         Map<String, String> userDetails = (Map<String, String>) authentication.getUserAuthentication().getDetails();
@@ -65,6 +47,7 @@ public class ServerController {
 
     @EventListener
     public void handleSubscribeEvent(SessionSubscribeEvent event) {
+        System.out.println(event.getUser());
         String topic = SimpMessageHeaderAccessor.wrap(event.getMessage()).getDestination();
         String user = event.getUser().getName();
         if (topic.equals("/topic/allChats/" + user)) {
@@ -95,7 +78,7 @@ public class ServerController {
                 .build();
         Chat chat = chatRepository.findByUsers(chatUsers);
         if (chat == null) {
-            chat = newChat(chatUsers, author.get("id"));
+            chat = new Chat(chatUsers, author.get("id"));
         }
         chat.getMessageHistory().add(newMessage);
         chat.getUsersLastSeen().put(author.get("id"), chat.getMessageHistory().size());
@@ -118,7 +101,7 @@ public class ServerController {
         int noOfMessagesRequested = Integer.parseInt(chatDetails.get("noOfMessages").get("noOfMessages"));
         Chat chat = chatRepository.findByUsers(chatUsers);
         if (chat == null) {
-            chat = newChat(chatUsers, user);
+            chat = new Chat(chatUsers, user);
             chat.getUsersLastSeen().put(user, chat.getMessageHistory().size());
             for (String eachUser: chat.getUsers()) {
                 ReturnMessage returnMessage = ReturnMessage.builder()
